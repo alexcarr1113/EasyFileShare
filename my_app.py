@@ -93,6 +93,7 @@ def get_code_from_id(sessionID):
 
 @app.route("/session/<sessionCode>", methods=["GET", "POST"]) # This renders the session or returns json of user's file and text
 def session(sessionCode):
+    sessionCode = sessionCode.upper()
     # Confirm login code is valid
     if len(cursor.execute("SELECT * FROM sessions WHERE code = ?", (sessionCode,)).fetchall()) > 0:
 
