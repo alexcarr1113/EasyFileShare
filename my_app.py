@@ -164,14 +164,11 @@ def hash(string): # Hashes a base 36 value using current time to create a unique
     return string
 
 def delete_expired(): # Selects all session records where the expiration date has been reached and wipes them and their respective files
-    sessions = cursor.execute("SELECT * FROM sessions WHERE expiration <= CURRENT_TIMESTAMP").fetchall()
+    sessions = cursor.execute("SELECT code FROM sessions WHERE expiration <= CURRENT_TIMESTAMP").fetchall()
     for session in sessions:
-        sessionID = session[0]
-        sessionCode = get_code_from_id(sessionID)
-        files = cursor.execute("SELECT * FROM files WHERE session_code = ?", (sessionCode,)).fetchall() # Select file records linked to that session
-        for file in files:
-            filePath = file[0] # Select first index path of file record
-            print(os.path.join(filePath))
+        sessionCode = session[0]
+        files = cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall() # Select file records linked to that session
+        for filePath in files:
             os.remove(os.path.join(filePath)) # Delete file from system
             cursor.execute("DELETE FROM files WHERE path = ?", (filePath,)) # Remove file record
         os.rmdir(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode))
