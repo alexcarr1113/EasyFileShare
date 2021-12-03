@@ -204,6 +204,10 @@ def create_session(lifetime): # Create a new session record
     connection.commit()
     return sessionID
 
+@app.route("/sitemap.xml"):
+def sitemap():
+    return app.send_static_file('sitemap.xml')
+
 
 # Create a background scheduler object and trigger the delete expired function every minute
 scheduler = BackgroundScheduler()
