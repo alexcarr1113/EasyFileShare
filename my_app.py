@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static/uploads" # Set upload_folder as constant in app config
 app.config["MAX_SESSIONS"] = 10000
 app.config["SESSION_LIFETIME"] = 60
-
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1000 * 1000
 
 connection = sqlite3.connect("data.db", check_same_thread=False) # Connect to database file
 cursor = connection.cursor()
@@ -64,6 +64,7 @@ def upload(sessionCode): # Function to handle uploading files and text
     # Check if request has a file
 
     if 'file' not in request.files:
+        print("text")
         print(request.get_json())
         if request.get_json(): # Save user text from json object
             userText = request.get_json()["user_text"]
@@ -77,8 +78,10 @@ def upload(sessionCode): # Function to handle uploading files and text
 
     # If the user does not select a file, the browser uploads an empty one
     if file.filename == '':
+        print("blank")
         return "No file uploaded"
     if file: # If file exists
+        print("file")
         save_file(file, sessionID)
         return jsonify({
             "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
@@ -204,7 +207,7 @@ def create_session(lifetime): # Create a new session record
     connection.commit()
     return sessionID
 
-@app.route("/sitemap.xml"):
+@app.route("/sitemap.xml")
 def sitemap():
     return app.send_static_file('sitemap.xml')
 
