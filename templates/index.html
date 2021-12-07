@@ -21,7 +21,7 @@
         <form id="uploadfile" method=post enctype=multipart/form-data>
             <div class="form-group">
                 <input type=file name=file>
-                <input type="submit" class="btn btn-primary btn-lg" value="Upload">
+                <input type="submit" id="uploadbtn" class="btn btn-primary btn-lg" value="Upload">
             </div>
         </form>
         <form method=post id="textupload">
@@ -36,6 +36,8 @@
     <script>
         $(document).ready(function() { // Runs when document is loaded
             $("#uploadfile").submit(function (event) { // When file form is submitted, capture file and create form data object
+                $("#uploadbtn").attr("value", "Uploading...");
+                $("#uploadbtn").css("background-color", "red");
                 var file = $("#uploadfile")[0];
                 var formData = new FormData(file); 
                 $.ajax({ // Send AJAX request
