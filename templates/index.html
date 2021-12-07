@@ -9,54 +9,27 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-    <style>
-        body {
-            background-color: #BEDABC;
-        }
-        
-        .vertical-center {
-            min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
-            min-height: 100vh; /* These two lines are counted as one       */
-        }
-    </style>
 
-    <div class="container-fluid justify-content-center">
-        <div style="min-height: 20%; min-height: 20vh;" class="row d-flex align-items-center justify-content-center">
-            <div class="col col-md-4 d-flex justify-content-center">
-                <div>   
-                    <form method=post>
-                        <div class="form-group">
-                            <input type="text" name="code" class="form-control" id="code_input" placeholder="Session Code">
-                            <input type="submit" class="btn btn-success btn-lg" value="Login">
-                        </div>
-                    </form>
-                </div>
+    <div class="container-fluid justify-content-center">  
+        <form method=post>
+            <div class="form-group">
+                <input type="text" name="code" class="form-control" id="code_input" placeholder="Session Code">
+                <input type="submit" class="btn btn-success btn-lg" value="Login">
             </div>
-        </div>
-        <div style="min-height: 50%; min-height: 50vh;" class="row">
-            <div class="row d-flex align-items-center justify-content-center">
+        </form>
 
-                <div class="col col-md-4 d-flex justify-content-center">
-                    <div>
-                        <form id="uploadfile" method=post enctype=multipart/form-data>
-                            <div class="form-group">
-                                <input type=file name=file>
-                                <input type="submit" class="btn btn-primary btn-lg" value="Upload">
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="col col-md-4 d-flex justify-content-center">
-                    <form method=post id="textupload">
-                        <div class="form-group">
-                            <input type="text" name="user_text" class="form-control" id="text_input" placeholder="Upload Text">
-                            <button type="submit" class="btn btn-secondary btn-lg" value="Upload">
-                        </div>
-                    </form>
-                </div>
-            </div> 
-        </div> 
-        
+        <form id="uploadfile" method=post enctype=multipart/form-data>
+            <div class="form-group">
+                <input type=file name=file>
+                <input type="submit" class="btn btn-primary btn-lg" value="Upload">
+            </div>
+        </form>
+        <form method=post id="textupload">
+            <div class="form-group">
+                <input type="text" name="user_text" class="form-control" id="text_input" placeholder="Upload Text">
+                <button type="submit" class="btn btn-secondary btn-lg" value="Upload">
+            </div>
+        </form>    
         <footer>06/12/21 18:55</footer>
     </div>
 
