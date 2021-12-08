@@ -27,14 +27,26 @@ function remove_file(filename) { // Sends request to remove file from server
     })
 }
 
+async function copy_text(text)
+{
+    try {
+        await navigator.clipboard.writeText(text);
+        console.log("copied " + text);
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
 $(document).ready(function () { // Runs when document is loaded
 
     $("#uploadtext").submit(function (event) { // Copies text in upload field to clipboard when button clicked
         event.preventDefault();
         var copyText = document.getElementById("textInput");
+        console.log(copyText);
         copyText.select();
         copyText.setSelectionRange(0,99999);
-        navigator.clipboard.writeText(copyText.value);
+        copy_text(copyText.value);
     })
     // send ajax req for files and text
     sessionCode = $("#sessioncode").html();
