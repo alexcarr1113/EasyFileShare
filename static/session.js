@@ -4,7 +4,7 @@ function update_files(fileList) { // Clear file list and rebuild
     $(".file").remove();
     for (var i = 0; i < fileList.length; i++) {
         var filename = fileList[i][0];
-        $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/session/"+sessionCode+"/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button onclick=remove_file('" + filename + "') class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
+        $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/"+sessionCode+"/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button onclick=remove_file('" + filename + "') class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
     }
 }
 
