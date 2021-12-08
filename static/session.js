@@ -9,7 +9,7 @@ function update_files(fileList) { // Clear file list and rebuild
 }
 
 function update_text(userText) {
-    $("#textupload").attr("value", userText);
+    $("#textInput").attr("value", userText);
 }
 
 function remove_file(filename) {
@@ -44,7 +44,7 @@ $(document).ready(function () { // Runs when document is loaded
     })
 
     $("#uploadtext").submit(function (event) { // Send text field to server
-        user_text = $("#text_input").val();
+        user_text = $("#textInput").val();
         $.ajax({ // Send AJAX request
             type: "POST",
             url: "/upload/"+sessionCode,
