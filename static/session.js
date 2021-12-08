@@ -8,11 +8,18 @@ function update_files(fileList) { // Clear file list and rebuild
     }
 }
 
-function update_text(userText) {
+function update_text(userText) { // Update text field with parameter
     $("#textInput").attr("value", userText);
 }
 
-function remove_file(filename) {
+function copy_text() { // Copies text in upload field to clipboard
+    var copyText = document.getElementById("textInput");
+    copyText.select();
+    copyText.setSelectionRange(0,99999);
+    navigator.clipboard.writeText(copyText.value);
+}
+
+function remove_file(filename) { // Sends request to remove file from server
     console.log("removing " + filename);
     console.log(sessionCode);
     $.ajax({
@@ -43,7 +50,7 @@ $(document).ready(function () { // Runs when document is loaded
         }
     })
 
-    $("#uploadtext").submit(function (event) { // Send text field to server
+    $("#uploadtext").on("focusout", function (event) { // Send text field to server
         user_text = $("#textInput").val();
         $.ajax({ // Send AJAX request
             type: "POST",

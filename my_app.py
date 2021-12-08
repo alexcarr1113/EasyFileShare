@@ -20,10 +20,6 @@ cursor = connection.cursor()
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        # Check if request has submitted a login code
-        if request.form["code"]:
-            sessionCode = request.form["code"]
-            return redirect("session/"+sessionCode)
         # Check if user has submitted a text upload
         if request.json["user_text"]:
             userText = request.json["user_text"]

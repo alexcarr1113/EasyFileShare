@@ -18,11 +18,11 @@
 
     <div class="container text-center"> 
         <img class="logo mb-3" src="{{ url_for('static', filename='upload.png') }}">
-        <form class="form form-login" method=post>
+        <form class="form form-login" method=post id="login">
             <h3 class="h3 mb-3 fw-normal">Session Login</h3>
             <div class="mb-3 form-floating">
                 <input type="text" onkeyup="this.value = this.value.toUpperCase();" name="code" class="form-control" id="code_input">
-                <label for="code_input">Session Code</label>
+                <label id="codeLabel" for="code_input">Session Code</label>
             </div>
             <button type="submit" class="w-100 btn btn-primary">Login</button>
         </form>

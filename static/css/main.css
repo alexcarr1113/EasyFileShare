@@ -38,3 +38,9 @@ label {
 .attribution, footer {
     font-size: xx-small;
 }
+
+.text-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
