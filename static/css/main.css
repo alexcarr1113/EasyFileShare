@@ -4,6 +4,12 @@ body {
     padding-top: 40px;
     padding-bottom: 40px;
     background-color: #ECECEC;
+    color: white;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:svgjs='http://svgjs.com/svgjs' width='1920' height='1080' preserveAspectRatio='none' viewBox='0 0 1920 1080'%3e%3cg mask='url(%26quot%3b%23SvgjsMask1187%26quot%3b)' fill='none'%3e%3crect width='1920' height='1080' x='0' y='0' fill='url(%23SvgjsLinearGradient1188)'%3e%3c/rect%3e%3cpath d='M 0%2c444 C 76.8%2c379 230.4%2c152.4 384%2c119 C 537.6%2c85.6 614.4%2c268.4 768%2c277 C 921.6%2c285.6 998.4%2c159.2 1152%2c162 C 1305.6%2c164.8 1382.4%2c283.8 1536%2c291 C 1689.6%2c298.2 1843.2%2c216.6 1920%2c198L1920 1080L0 1080z' fill='rgba(63%2c 55%2c 201%2c 1)'%3e%3c/path%3e%3cpath d='M 0%2c994 C 128%2c951.2 384%2c776.2 640%2c780 C 896%2c783.8 1024%2c1048 1280%2c1013 C 1536%2c978 1792%2c686.6 1920%2c605L1920 1080L0 1080z' fill='rgba(67%2c 97%2c 238%2c 1)'%3e%3c/path%3e%3c/g%3e%3cdefs%3e%3cmask id='SvgjsMask1187'%3e%3crect width='1920' height='1080' fill='white'%3e%3c/rect%3e%3c/mask%3e%3clinearGradient x1='10.94%25' y1='-19.44%25' x2='89.06%25' y2='119.44%25' gradientUnits='userSpaceOnUse' id='SvgjsLinearGradient1188'%3e%3cstop stop-color='%230e2a47' offset='0'%3e%3c/stop%3e%3cstop stop-color='rgba(158%2c 0%2c 95%2c 1)' offset='1'%3e%3c/stop%3e%3c/linearGradient%3e%3c/defs%3e%3c/svg%3e");
+}
+
+label {
+    color: #212529;
 }
 
 .form {
@@ -23,4 +29,8 @@ body {
 
 #code_input {
     max-height: 4rem;
+}
+
+.attribution, footer {
+    font-size: xx-small;
 }
