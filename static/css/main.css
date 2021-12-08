@@ -8,11 +8,19 @@ body {
 
 .form {
     width: 100%;
-    max-width: 330px;
+    max-width: 15rem;
     padding: 15px;
     margin: auto;
 }
 
 .form-text {
-    max-width: 660px;
+    max-width: 50rem;
+}
+
+.form-login {
+    max-width: 10rem;
+}
+
+#code_input {
+    max-height: 2rem;
 }

@@ -96,6 +96,7 @@ def get_code_from_id(sessionID):
 
 @app.route("/session/<sessionCode>", methods=["GET", "POST"]) # This renders the session or returns json of user's file and text
 def session(sessionCode):
+    print(sessionCode)
     sessionCode = sessionCode.upper()
     # Confirm login code is valid
     if len(cursor.execute("SELECT * FROM sessions WHERE code = ?", (sessionCode,)).fetchall()) > 0:
@@ -133,7 +134,7 @@ def remove_file(sessionCode, filename):
         pass
     if cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall()[0][0] == filePath: # Check file belongs to provided session code
         delete_file(filePath) # Delete file
-    return redirect(url_for("session", sessionCode=sessionCode))
+    return session(sessionCode)
 
 
 def index_to_char(index): # Takes in a number between 0 and 35 and converts to corresponding character in base-36
