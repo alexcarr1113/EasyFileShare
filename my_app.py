@@ -125,6 +125,16 @@ def download(sessionCode, file):
     else:
         return redirect(url_for("session", sessionCode=sessionCode)) # If code is not correct return to session page
 
+@app.route("/remove/<sessionCode>/<filename>", methods=["POST"])
+def remove_file(sessionCode, filename):
+    try:
+        filePath = cursor.execute("SELECT path FROM files WHERE name = ?", (filename,)).fetchall()[0][0]
+    except IndexError as e:
+        pass
+    if cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall()[0][0] == filePath: # Check file belongs to provided session code
+        delete_file(filePath) # Delete file
+    return redirect(url_for("session", sessionCode=sessionCode))
+
 
 def index_to_char(index): # Takes in a number between 0 and 35 and converts to corresponding character in base-36
     chars = [0,1,2,3,4,5,6,7,8,9,'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
@@ -172,15 +182,15 @@ def delete_expired(): # Selects all session records where the expiration date ha
         sessionCode = session[0]
         files = cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall() # Select file records linked to that session
         for filePath in files:
-            os.remove(os.path.join(filePath)) # Delete file from system
-            cursor.execute("DELETE FROM files WHERE path = ?", (filePath,)) # Remove file record
+            delete_file(filePath) # Delete files and remove records
         os.rmdir(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode))
         cursor.execute("DELETE FROM sessions WHERE id = ?", (sessionID,)) # Remove session record
         cursor.execute("INSERT INTO id_pool (id) VALUES (?)", (sessionID,)) # Readd ID to id_pool
     connection.commit()
 
-
-
+def delete_file(filePath): # Delete file from system and remove record
+    cursor.execute("DELETE FROM files WHERE path = ?", (filePath,))
+    os.remove(os.path.join(os.path.join(filePath)))
 
 def reset_id_pool(): # Removes all records from the id_pool and refills it up to 9999
     cursor.execute("DELETE FROM id_pool")

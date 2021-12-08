@@ -35,10 +35,37 @@
             </form>
             <div class="text-center" id="files">
             </div>
-    <footer>07/12/21 22:40</footer>
+            <footer>08/12/21 11:00</footer>
     </div>
 
     <script>
+
+        function update_files(fileList) { // Clear file list and rebuild
+            $(".file").remove();
+            for (var i = 0; i < fileList.length; i++) {
+                var filename = fileList[i][0];
+                $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/session/{{sessionCode}}/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button onclick=remove_file('"+filename+"') class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
+            }
+        }
+
+        function update_text(userText) {
+            $("#textupload").attr("value", userText);
+        }
+
+        function remove_file(filename) {
+            console.log("removing " + filename);
+            $.ajax({
+                type: "POST",
+                url: "/remove/{{sessionCode}}/"+filename,
+                success: function (response) {
+                    update_files(response["fileList"]);
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+
         $(document).ready(function () { // Runs when document is loaded
 
             // send ajax req for files and text
@@ -46,12 +73,8 @@
                 type: "POST",
                 url: "/session/{{sessionCode}}",
                 success: function (response) {
-                    var fileList = response["fileList"];
-                    for (var i = 0; i < fileList.length; i++) {
-                        var filename = fileList[i][0];
-                        $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/session/{{sessionCode}}/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
-                    }
-                    $("#text_input").attr("value", response["userText"]);
+                    update_files(response["fileList"]);
+                    update_text(response["userText"]);
                 },
                 error: function (error) {
                     console.log(error);
@@ -67,7 +90,7 @@
                     dataType: "json",
                     data: JSON.stringify({ "user_text": user_text }),
                     success: function (response) { // If successful replace field value with text
-                        $("#textupload").attr("value", response["userText"]);
+                        update_text(response["userText"]);
                     },
                     error: function (response) {
                         console.log(response);
@@ -89,18 +112,12 @@
                     contentType: false,
                     cache: false,
                     success: function (response) { // If successful, remove current list and rebuild list with new files
-                        console.log(response["fileList"]);
-                        $(".file").remove();
                         $("#uploadbtn").attr("class", "w-100 btn btn-primary");
                         $("#uploadbtn").html("Upload");
-                        for (var i = 0; i < response["fileList"].length; i++) {
-                            var filename = response["fileList"][i][0];
-                            $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/session/{{sessionCode}}/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
-                        }
+                        update_files(response["fileList"]);
                     },
                     error: function (response) {
                         $("#uploadbtn").html("Upload failed");
-                        console.log(response);
                     }
                 })
                 event.preventDefault();
