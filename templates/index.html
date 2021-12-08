@@ -36,7 +36,7 @@
         <h3 class="h3 mb-3 fw-normal">Upload Text</h3>
         <form class="form form-text" method=post id="textupload">
             <div class="mb-1 form-floating">
-                <input type="text" name="user_text" class="form-control" id="text_input">
+                <input type="text" onkeyup="this.value = this.value.toUpperCase();" name="user_text" class="form-control" id="text_input">
                 <label id="text_label" for="text_input">Enter Text</label>
             </div>
 

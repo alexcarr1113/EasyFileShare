@@ -18,9 +18,9 @@ body {
 }
 
 .form-login {
-    max-width: 10rem;
+    max-width: 15rem;
 }
 
 #code_input {
-    max-height: 3rem;
+    max-height: 4rem;
 }
