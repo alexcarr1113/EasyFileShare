@@ -33,7 +33,7 @@ $(document).ready(function () { // Runs when document is loaded
     console.log(sessionCode);
     $.ajax({
         type: "POST",
-        url: "/session/"+sessionCode,
+        url: "/"+sessionCode,
         success: function (response) {
             update_files(response["fileList"]);
             update_text(response["userText"]);

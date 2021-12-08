@@ -10,7 +10,7 @@ $(document).ready(function () { // Runs when document is loaded
             contentType: false,
             cache: false,
             success: function (response) { // If successful, remove current list and rebuild list with new files
-                window.location.replace("/session/" + response["sessionCode"]); // Redirect to session
+                window.location.replace("/"+response["sessionCode"]); // Redirect to session
             },
             error: function (response) {
                 console.log(response);
@@ -29,7 +29,7 @@ $(document).ready(function () { // Runs when document is loaded
                 dataType: "json",
                 data: JSON.stringify({ "user_text": user_text }),
                 success: function (response) { // If successful, remove current list and rebuild list with new files
-                    window.location.replace("/session/" + response["sessionCode"]); // Redirect to session
+                    window.location.replace("/"+response["sessionCode"]); // Redirect to session
                 },
                 error: function (response) {
                     console.log(response);

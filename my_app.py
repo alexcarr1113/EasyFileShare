@@ -94,7 +94,7 @@ def upload(sessionCode): # Function to handle uploading files and text
 def get_code_from_id(sessionID):
     return cursor.execute("SELECT code FROM sessions WHERE id = ?", (sessionID,)).fetchall()[0][0]
 
-@app.route("/session/<sessionCode>", methods=["GET", "POST"]) # This renders the session or returns json of user's file and text
+@app.route("/<sessionCode>", methods=["GET", "POST"]) # This renders the session or returns json of user's file and text
 def session(sessionCode):
     print(sessionCode)
     sessionCode = sessionCode.upper()
@@ -117,7 +117,7 @@ def session(sessionCode):
 
 
 
-@app.route("/session/<sessionCode>/<file>") # Allows downloading of files through a direct link
+@app.route("/<sessionCode>/<file>") # Allows downloading of files through a direct link
 def download(sessionCode, file):
     print(file)
     if cursor.execute("SELECT code FROM sessions WHERE code = (SELECT session_code FROM files WHERE name = ?)", (file,)).fetchall()[0][0] == sessionCode: # If session code for desired file matches provided code
