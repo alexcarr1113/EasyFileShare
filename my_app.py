@@ -191,6 +191,7 @@ def delete_expired(): # Selects all session records where the expiration date ha
 def delete_file(filePath): # Delete file from system and remove record
     cursor.execute("DELETE FROM files WHERE path = ?", (filePath,))
     os.remove(os.path.join(os.path.join(filePath)))
+    connection.commit()
 
 def reset_id_pool(): # Removes all records from the id_pool and refills it up to 9999
     cursor.execute("DELETE FROM id_pool")
