@@ -1,3 +1,5 @@
+__pycache__
+data.db
 static/uploads
 menv
 test.py
