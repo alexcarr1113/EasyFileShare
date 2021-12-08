@@ -12,13 +12,6 @@ function update_text(userText) { // Update text field with parameter
     $("#textInput").attr("value", userText);
 }
 
-function copy_text() { // Copies text in upload field to clipboard
-    var copyText = document.getElementById("textInput");
-    copyText.select();
-    copyText.setSelectionRange(0,99999);
-    navigator.clipboard.writeText(copyText.value);
-}
-
 function remove_file(filename) { // Sends request to remove file from server
     console.log("removing " + filename);
     console.log(sessionCode);
@@ -35,6 +28,14 @@ function remove_file(filename) { // Sends request to remove file from server
 }
 
 $(document).ready(function () { // Runs when document is loaded
+
+    $("#uploadtext").submit(function (event) { // Copies text in upload field to clipboard when button clicked
+        event.preventDefault();
+        var copyText = document.getElementById("textInput");
+        copyText.select();
+        copyText.setSelectionRange(0,99999);
+        navigator.clipboard.writeText(copyText.value);
+    })
     // send ajax req for files and text
     sessionCode = $("#sessioncode").html();
     console.log(sessionCode);
