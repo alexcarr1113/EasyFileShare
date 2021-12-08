@@ -19,6 +19,7 @@
 
 <body>
     <div class="container text-center">
+        <img class="logo mb-3" src="{{ url_for('static', filename='upload.png') }}">
         <h1 id="sessioncode" class="h1 mb-3 fw-normal">{{sessionCode}}</h2>
             <a href="/"><button class="btn mb-3 btn-primary btn-lg">Back</button></a>
             <form class="form" id="fileform" method=post enctype=multipart/form-data>
