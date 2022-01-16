@@ -1,5 +1,3 @@
-from genericpath import commonprefix
-from msilib.schema import File
 import os
 import sqlite3
 import datetime
