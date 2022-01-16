@@ -1,4 +1,5 @@
 from genericpath import commonprefix
+from msilib.schema import File
 import os
 import sqlite3
 import datetime
@@ -167,8 +168,12 @@ def delete_expired():  # Selects all session records where the expiration date h
         sessionID = session[0]
         files = cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall()  # Select file records linked to that session
         for filePath in files:
-            delete_file(filePath[0])  # Delete files and remove records
-        os.rmdir(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode))
+                delete_file(filePath[0])  # Delete files and remove records
+                print("File does not exist")
+        try:
+            os.rmdir(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode))
+        except FileNotFoundError:
+            print("No such directory")
         cursor.execute("DELETE FROM sessions WHERE id = ?",
                        (sessionID,))  # Remove session record
         cursor.execute("INSERT INTO id_pool (id) VALUES (?)",
