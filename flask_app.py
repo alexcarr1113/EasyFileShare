@@ -169,9 +169,12 @@ def delete_expired():  # Selects all session records where the expiration date h
 
 
 def delete_file(filePath):  # Delete file from system and remove record
-    cursor.execute("DELETE FROM files WHERE path = ?", (filePath,))
-    os.remove(os.path.join(os.path.join(filePath)))
-    connection.commit()
+    try:
+        cursor.execute("DELETE FROM files WHERE path = ?", (filePath,))
+        os.remove(os.path.join(os.path.join(filePath)))
+        connection.commit()
+    except FileNotFoundError as e:
+        print(e)
 
 
 def reset_id_pool():  # Removes all records from the id_pool and refills it up to session limit
@@ -214,5 +217,4 @@ def match_session(sessionCode):
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=delete_expired, trigger="interval", minutes=10)
 scheduler.start()
-
 delete_expired()
