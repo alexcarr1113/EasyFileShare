@@ -18,6 +18,14 @@
 
     <div class="container text-center"> 
         <img class="logo mb-3" src="{{ url_for('static', filename='upload.png') }}">
+
+        <form class="form form-login" method=post id="create" action="/create">
+            <p>Session Lifetime</p>
+            <input type="range" min="1", max="60", value="30", name="lifetime", id="lifetime">
+            <p id="lifetime_val">30 minutes</p>
+            <button type="submit" class="w-100 btn btn-primary">Create Session</button>
+        </form>
+
         <form class="form form-login" method=post id="login">
             <h3 class="h3 mb-3 fw-normal">Session Login</h3>
             <div class="mb-3 form-floating">
@@ -27,22 +35,6 @@
             <button type="submit" class="w-100 btn btn-primary">Login</button>
         </form>
 
-        <form class="form" id="fileform" method=post enctype=multipart/form-data>
-            <h3 class="h3 mb-3 fw-normal">Upload File</h3>
-            <div class="mb-3 form-floating">
-                <input id="uploadfile" class="form-control-file" type=file name=file>
-            </div>
-        </form>
-
-        <h3 class="h3 mb-3 fw-normal">Upload Text</h3>
-        <form class="form form-text" method=post id="textupload">
-            <div class="mb-3 form-floating">
-                <input type="text" name="user_text" value="" class="form-control" id="text_input">
-                <label id="text_label" for="text_input">Enter Text</label>
-            </div>
-
-            <button type="submit" class="w-50 btn btn-primary btn">Upload</button>  
-        </form>    
         <footer>08/12/21 15:20</footer>
         <p class="attribution">Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></p>
     </div>

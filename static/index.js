@@ -63,4 +63,8 @@ $(document).ready(function () { // Runs when document is loaded
         }
         event.preventDefault();
     })
+
+    $("#lifetime").on("input", function (event) {
+        $("#lifetime_val").html($("#lifetime").val() + " minutes");
+    })
 })
