@@ -1,4 +1,12 @@
 import random
+import os
+import base64
+from turtle import back
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import   PBKDF2HMAC
+from flask import session
 
 ### Provides functions for generating session codes
 
@@ -44,3 +52,43 @@ def hash(string): # Hashes a base 36 value using current time to create a unique
 
 def generate_code(index):
     return hash(convert(index))
+
+    ### AES-256 ENCRYPTION FUNCTIONS
+
+def generate_key(sessionCode):
+    salt = b'\xfbu>Q\xf0nx\xe5\xfa\xe6\x9a\xee\xea=\xfa\x1d'
+    password = sessionCode.encode()
+    kdf = PBKDF2HMAC (
+        algorithm=hashes.SHA256,
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password))
+    return key
+
+def encrypt_file(path, sessionCode):
+    key = generate_key(sessionCode)
+    with open(path, "rb") as f: # Open file and read data into variable
+        data = f.read()
+    os.remove(path)
+
+    fernet = Fernet(key)
+    encrypted = fernet.encrypt(data) # Create encrypted data
+
+    with open(path, "wb") as f: # Write to new file
+        f.write(encrypted)
+
+def decrpyt_file(path, sessionCode):
+    key = generate_key(sessionCode)
+    try:
+        with open(path, "rb") as f: # Open file and read encrypted data into variable
+            encrypted = f.read()
+    except:
+        pass
+    
+    fernet = Fernet(key)
+    data = fernet.decrypt(encrypted) # Create decrypted data
+
+    return data # Return data for sending

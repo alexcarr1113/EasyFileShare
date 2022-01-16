@@ -2,10 +2,10 @@ from genericpath import commonprefix
 import os
 import sqlite3
 import datetime
-import random
+from io import BytesIO
 from hashing import *
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -46,17 +46,21 @@ def save_file(file, sessionCode):
     # If directory for session exists
     if sessionCode in os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])):
         # Insert file record and save
-        cursor.execute("DELETE FROM files WHERE path = ?",
+        cursor.execute("DELETE FROM files WHERE path = ?", # Force replacement of file with same name
                        (path+"/"+filename,))
         cursor.execute("INSERT INTO files (name, path, session_code) VALUES (?, ?, ?)",
                        (filename, path+"/"+filename, sessionCode))
-        file.save(path+"/"+filename)  # Save file to directory
+        path = path+"/"+filename
+        file.save(path)
+        encrypt_file(path, sessionCode) # Encrypt and save file
     else:
         os.mkdir(path)  # Create new directory
         # Insert file record and save
         cursor.execute("INSERT INTO files (name, path, session_code) VALUES (?, ?, ?)",
                        (filename, path+"/"+filename, sessionCode))
-        file.save(path+"/"+filename)  # Save file to directory
+        path = path+"/"+filename
+        file.save(path)
+        encrypt_file(path, sessionCode) # Encrypt and save file
     connection.commit()
 
 # Function to handle uploading files and text
@@ -123,13 +127,17 @@ def session(sessionCode):
 
 
 # Allows downloading of files through a direct link
-@app.route("/<sessionCode>/<file>")
-def download(sessionCode, file):
-    print(file)
+@app.route("/<sessionCode>/<filename>")
+def download(sessionCode, filename):
     # If session code for desired file matches provided code
-    if cursor.execute("SELECT code FROM sessions WHERE code = (SELECT session_code FROM files WHERE name = ?)", (file,)).fetchall()[0][0] == sessionCode:
+    if cursor.execute("SELECT code FROM sessions WHERE code = (SELECT session_code FROM files WHERE name = ?)", (filename,)).fetchall()[0][0] == sessionCode:
         path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
-        return send_from_directory(path, file)  # Send file to user
+        bytes = decrpyt_file(path+"/"+filename, sessionCode)
+        return send_file( # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
+            BytesIO(bytes),
+            attachment_filename=filename,
+            mimetype="text/plain"
+        )  # Send file to user
     else:
         # If code is not correct return to session page
         return error("Invalid session code or file does not exist")
