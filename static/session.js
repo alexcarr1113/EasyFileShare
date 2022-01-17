@@ -1,15 +1,25 @@
 var sessionCode;
+var password = 0;
 
 function update_files(fileList) { // Clear file list and rebuild
     $(".file").remove();
     for (var i = 0; i < fileList.length; i++) {
         var filename = fileList[i][0];
-        $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><a href='/"+sessionCode+"/" + filename + "' download><button class='btn btn-outline-primary mx-1'>Download</button></a><button onclick=remove_file('" + filename + "') class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
+        $("#files").append("<div class='row mb-1 file'><div class='col col-md-6'>" + filename + "</div><div class='col col-md-6'><button onclick=download_file('"+filename+"') class='btn btn-outline-primary mx-1'>Download</button><button onclick=remove_file('" + filename + "') class='btn btn-outline-danger mx-1'>Remove</button></div></div>");
     }
 }
 
 function update_text(userText) { // Update text field with parameter
     $("#textInput").attr("value", userText);
+}
+
+function download_file(filename)
+{
+    var anchor = document.createElement('a');
+    anchor.href = "/"+sessionCode+"/"+filename+"/"+password;
+    anchor.download = filename;
+    console.log("downloading " + filename);
+    anchor.click();
 }
 
 function remove_file(filename) { // Sends request to remove file from server
@@ -39,6 +49,14 @@ async function copy_text(text)
 }
 
 $(document).ready(function () { // Runs when document is loaded
+
+    $("#encryptionKey").on("change", function (event) {
+        password = $("#encryptionKey").val();
+        if (password == "")
+        {
+            password = 0;
+        }
+    })
 
     $("#uploadtext").submit(function (event) { // Copies text in upload field to clipboard when button clicked
         event.preventDefault();
@@ -88,7 +106,7 @@ $(document).ready(function () { // Runs when document is loaded
         $("#uploadbtn").attr("class", "w-100 btn btn-danger");
         $.ajax({ // Send AJAX request
             type: "POST",
-            url: "/upload/"+sessionCode,
+            url: "/upload/"+sessionCode+"/"+password,
             data: formData,
             processData: false,
             contentType: false,
@@ -97,9 +115,11 @@ $(document).ready(function () { // Runs when document is loaded
                 $("#uploadbtn").attr("class", "w-100 btn btn-primary");
                 $("#uploadbtn").html("Upload");
                 update_files(response["fileList"]);
+                $("#uploadfile").val('');
             },
             error: function (response) {
-                $("#uploadbtn").html("Upload failed");
+                console.log(response);
+                $("#uploadbtn").html(response);
             }
         })
         event.preventDefault();

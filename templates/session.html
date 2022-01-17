@@ -25,7 +25,12 @@
             <form class="form" id="fileform" method=post enctype=multipart/form-data>
                 <h3 class="h3 mb-3 fw-normal">Add Files</h3>
                 <div class="mb-3 form-floating">
-                    <input class=" form-control-file" id="uploadfile" type=file name=file>
+                    <div class="mb-3 form-group">
+                        <input class="form-control" type="password" id="encryptionKey" placeholder="Encryption Key (optional)">
+                    </div>
+                    <div class="mb-3 form-group">
+                        <input class=" form-control-file" id="uploadfile" type=file name=file>
+                    </div>
                 </div>
             </form>
 

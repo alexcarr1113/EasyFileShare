@@ -1,10 +1,11 @@
 import os
 import sqlite3
 import datetime
+import shutil
 from io import BytesIO
 from hashing import *
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, abort, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, abort, send_file, Response
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -14,7 +15,7 @@ app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["MAX_SESSIONS"] = 10000  # Define maximum session count
 # Define max session lifetime
 app.config["MAX_LIFETIME"] = 60
-# Set max file size to 1gb to stop users uploading their entire hard drive of porn
+# Set max file size to 1gb
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1000 * 1000
 
 connection = sqlite3.connect(
@@ -38,7 +39,7 @@ def create():
 # Creates file record linked to session id and saves file to directory
 
 
-def save_file(file, sessionCode):
+def save_file(file, sessionCode, password):
     filename = secure_filename(file.filename)
     # Insert file record to database
     path = os.path.join(app.config['UPLOAD_FOLDER'], sessionCode)
@@ -51,7 +52,8 @@ def save_file(file, sessionCode):
                        (filename, path+"/"+filename, sessionCode))
         path = path+"/"+filename
         file.save(path)
-        encrypt_file(path, sessionCode) # Encrypt and save file
+        if password != "":
+            encrypt_file(path, sessionCode, password) # Encrypt and save file
     else:
         os.mkdir(path)  # Create new directory
         # Insert file record and save
@@ -59,14 +61,15 @@ def save_file(file, sessionCode):
                        (filename, path+"/"+filename, sessionCode))
         path = path+"/"+filename
         file.save(path)
-        encrypt_file(path, sessionCode) # Encrypt and save file
+        if password != "0":
+            encrypt_file(path, sessionCode, password) # Encrypt and save file
     connection.commit()
 
 # Function to handle uploading files and text
 
 
-@app.route("/upload/<sessionCode>", methods=["POST"])
-def upload(sessionCode):
+@app.route("/upload/<sessionCode>/<password>", methods=["POST"])
+def upload(sessionCode, password):
     if not match_session(sessionCode):
         return error("Invalid session code")
 
@@ -93,7 +96,7 @@ def upload(sessionCode):
             "sessionCode": sessionCode
         })
     if file:  # If file exists
-        save_file(file, sessionCode)
+        save_file(file, sessionCode, password)
         return jsonify({
             "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
             "sessionCode": sessionCode
@@ -126,12 +129,13 @@ def session(sessionCode):
 
 
 # Allows downloading of files through a direct link
-@app.route("/<sessionCode>/<filename>")
-def download(sessionCode, filename):
+@app.route("/<sessionCode>/<filename>/<password>")
+def download(sessionCode, filename, password):
     # If session code for desired file matches provided code
-    if cursor.execute("SELECT code FROM sessions WHERE code = (SELECT session_code FROM files WHERE name = ?)", (filename,)).fetchall()[0][0] == sessionCode:
+    if cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall()[0][0] == filename:
+        print("Decrypting file", filename, "with key", password)
         path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
-        bytes = decrpyt_file(path+"/"+filename, sessionCode)
+        bytes = decrypt_file(path+"/"+filename, sessionCode, password)
         return send_file( # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
             BytesIO(bytes),
             attachment_filename=filename,
@@ -153,7 +157,6 @@ def remove_file(sessionCode, filename):
     delete_file(filePath)  # Delete file
     return session(sessionCode)
 
-
 def error(err):
     return err
 
@@ -164,14 +167,11 @@ def delete_expired():  # Selects all session records where the expiration date h
     for session in sessions:
         sessionCode = session[1]
         sessionID = session[0]
-        files = cursor.execute("SELECT path FROM files WHERE session_code = ?", (sessionCode,)).fetchall()  # Select file records linked to that session
-        for filePath in files:
-                delete_file(filePath[0])  # Delete files and remove records
-                print("File does not exist")
         try:
-            os.rmdir(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode))
+            shutil.rmtree(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)) # Clear and remove directory
         except FileNotFoundError:
             print("No such directory")
+        cursor.execute("DELETE FROM files WHERE session_code = ?", (sessionCode,)) # Remove file record
         cursor.execute("DELETE FROM sessions WHERE id = ?",
                        (sessionID,))  # Remove session record
         cursor.execute("INSERT INTO id_pool (id) VALUES (?)",

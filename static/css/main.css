@@ -46,3 +46,7 @@ label {
     flex-direction: row;
     justify-content: center;
 }
+
+label {
+    color: white;
+}

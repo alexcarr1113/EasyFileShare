@@ -1,6 +1,7 @@
 import random
 import os
 import base64
+import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -54,9 +55,9 @@ def generate_code(index):
 
     ### AES-256 ENCRYPTION FUNCTIONS
 
-def generate_key(sessionCode):
+def generate_key(sessionCode, password):
     salt = b'\xfbu>Q\xf0nx\xe5\xfa\xe6\x9a\xee\xea=\xfa\x1d'
-    password = sessionCode.encode()
+    password = password.encode()
     kdf = PBKDF2HMAC (
         algorithm=hashes.SHA256,
         length=32,
@@ -67,8 +68,8 @@ def generate_key(sessionCode):
     key = base64.urlsafe_b64encode(kdf.derive(password))
     return key
 
-def encrypt_file(path, sessionCode):
-    key = generate_key(sessionCode)
+def encrypt_file(path, sessionCode, password):
+    key = generate_key(sessionCode, password)
     with open(path, "rb") as f: # Open file and read data into variable
         data = f.read()
     os.remove(path)
@@ -79,8 +80,8 @@ def encrypt_file(path, sessionCode):
     with open(path, "wb") as f: # Write to new file
         f.write(encrypted)
 
-def decrpyt_file(path, sessionCode):
-    key = generate_key(sessionCode)
+def decrypt_file(path, sessionCode, password):
+    key = generate_key(sessionCode, password)
     try:
         with open(path, "rb") as f: # Open file and read encrypted data into variable
             encrypted = f.read()
@@ -88,6 +89,9 @@ def decrpyt_file(path, sessionCode):
         pass
     
     fernet = Fernet(key)
-    data = fernet.decrypt(encrypted) # Create decrypted data
+    try:
+        data = fernet.decrypt(encrypted) # Create decrypted data
+    except:
+        data = encrypted
 
-    return data # Return data for sending
+    return data
