@@ -150,7 +150,7 @@ def download(sessionCode, filename, password):
         path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
 
         # Generate decrypted file bytes
-        bytes = decrypt_file(path+"/"+filename, sessionCode, password)
+        bytes = decrypt_file(path+"/"+filename, password)
         # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
         return send_file(
             BytesIO(bytes),
