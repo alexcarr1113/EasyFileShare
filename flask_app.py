@@ -18,168 +18,195 @@ app.config["MAX_LIFETIME"] = 60
 # Set max file size to 1gb
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1000 * 1000
 
+# Connect to database file
 connection = sqlite3.connect(
-    "data.db", check_same_thread=False)  # Connect to database file
+    "data.db", check_same_thread=False)
 cursor = connection.cursor()
 
+# Route for index page
 
-@app.route("/", methods=["GET"])  # Route for index page
+
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
-
+# Route for session creation. Takes lifetime from HTML form, checks it isn't greater than defined max lifetime
+# then runs create session function and redirects to new session.
 @app.route("/create", methods=["POST"])
 def create():
     lifetime = int(request.form["lifetime"])
+
     if lifetime > app.config["MAX_LIFETIME"]:
-        return error("Lifetime cannot be greater than", app.config["MAX_LIFETIME"], "minutes")
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
+
     sessionCode = create_session(lifetime)
     return redirect(url_for("session", sessionCode=sessionCode))
 
-# Creates file record linked to session id and saves file to directory
-
-
+# Creates file record linked to session and saves file to directory
 def save_file(file, sessionCode, password):
     filename = secure_filename(file.filename)
-    # Insert file record to database
     path = os.path.join(app.config['UPLOAD_FOLDER'], sessionCode)
-    # If directory for session exists
-    if sessionCode in os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])):
-        # Insert file record and save
-        cursor.execute("DELETE FROM files WHERE path = ?", # Force replacement of file with same name
-                       (path+"/"+filename,))
-        cursor.execute("INSERT INTO files (name, path, session_code) VALUES (?, ?, ?)",
-                       (filename, path+"/"+filename, sessionCode))
-        path = path+"/"+filename
-        file.save(path)
-        if password != "":
-            encrypt_file(path, sessionCode, password) # Encrypt and save file
-    else:
-        os.mkdir(path)  # Create new directory
-        # Insert file record and save
-        cursor.execute("INSERT INTO files (name, path, session_code) VALUES (?, ?, ?)",
-                       (filename, path+"/"+filename, sessionCode))
-        path = path+"/"+filename
-        file.save(path)
-        if password != "0":
-            encrypt_file(path, sessionCode, password) # Encrypt and save file
+
+    # If directory for session does not exist then create one
+    if sessionCode not in os.listdir(os.path.join(app.config['UPLOAD_FOLDER'])):
+        os.mkdir(path)
+
+    # Insert file record and save
+    cursor.execute("DELETE FROM files WHERE path = ?",  # Force replacement of file with same name
+                   (path+"/"+filename,))
+    cursor.execute("INSERT INTO files (name, path, session_code) VALUES (?, ?, ?)",
+                   (filename, path+"/"+filename, sessionCode))
+    path = path+"/"+filename
+    file.save(path)
+
+    # If password provided then encrypt file
+    if password != "0":
+        encrypt_file(path, password)
+
     connection.commit()
 
-# Function to handle uploading files and text
-
-
+# Route to handle uploading files and text
 @app.route("/upload/<sessionCode>/<password>", methods=["POST"])
 def upload(sessionCode, password):
-    if not match_session(sessionCode):
-        return error("Invalid session code")
+    if match_session(sessionCode) == False:
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
 
     # Check if request has a file
 
     if 'file' not in request.files:
-        if request.get_json():  # Save user text from json object
+        # Save user text from json object
+        if request.get_json():
             userText = request.get_json()["user_text"]
+
+            # Update user text field
             cursor.execute("UPDATE sessions SET user_text = ? WHERE code = ?",
-                           (userText, sessionCode,))  # Update user text field
+                           (userText, sessionCode,))
             connection.commit()
+
+            # Return session code to front-end
             return jsonify({
                 "sessionCode": sessionCode
             })
         else:
-            return error("Nothing uploaded")
+            return redirect(url_for("index"))
+            # TODO IMPLEMENT ERROR HANDLING
 
     file = request.files['file']
 
-    # If the user does not select a file, the browser uploads an empty one
-    if file.filename == '':
-        return jsonify({
-            "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
-            "sessionCode": sessionCode
-        })
-    if file:  # If file exists
+    # If file exists then call save function on it
+
+    if file:
         save_file(file, sessionCode, password)
+
+        # Return list of files to front-end
+
         return jsonify({
             "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
             "sessionCode": sessionCode
         })
     else:
         return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
 
 
-# This renders the session or returns json of user's file and text
+# This renders the session or returns json of user's file and text, depending on the method used
 @app.route("/<sessionCode>", methods=["GET", "POST"])
 def session(sessionCode):
-    sessionCode = sessionCode.upper()
+
+    # Send page for get request
+
+    if request.method == "GET":
+        # Check session exists
+        if match_session(sessionCode):
+            return render_template("session.html", sessionCode=sessionCode)
+
     # Confirm login code is valid
+
+    sessionCode = sessionCode.upper()
     if not match_session(sessionCode):
-        return error("Invalid session code")
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
 
-    if request.method == "GET":  # Send user page for get request
-        return render_template("session.html", sessionCode=sessionCode)
+    # Return JSON of user's files for POST request
 
-    else:  # Return json of user's files
-        if len(cursor.execute("SELECT * FROM sessions WHERE code = ?", (sessionCode,)).fetchall()) > 0:
-            fileList = cursor.execute(
-                "SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall()
-            userText = cursor.execute(
-                "SELECT user_text FROM sessions WHERE code = ?", (sessionCode,)).fetchall()
-            return jsonify({
-                "fileList": fileList,
-                "userText": userText
-            })
+    fileList = cursor.execute(
+        "SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall()
+    userText = cursor.execute(
+        "SELECT user_text FROM sessions WHERE code = ?", (sessionCode,)).fetchall()
+
+    return jsonify({
+        "fileList": fileList,
+        "userText": userText
+    })
 
 
-# Allows downloading of files through a direct link
+# Route for downloading files
 @app.route("/<sessionCode>/<filename>/<password>")
 def download(sessionCode, filename, password):
     # If session code for desired file matches provided code
     if cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall()[0][0] == filename:
-        print("Decrypting file", filename, "with key", password)
         path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
+
+        # Generate decrypted file bytes
         bytes = decrypt_file(path+"/"+filename, sessionCode, password)
-        return send_file( # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
+        # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
+        return send_file(
             BytesIO(bytes),
             attachment_filename=filename,
             mimetype="text/plain"
-        )  # Send file to user
+        )
     else:
-        # If code is not correct return to session page
-        return error("Invalid session code or file does not exist")
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
 
 
+# Route for removing files
 @app.route("/remove/<sessionCode>/<filename>", methods=["POST"])
 def remove_file(sessionCode, filename):
     # Check file exists and belongs to provided session code
     try:
         filePath = cursor.execute(
             "SELECT path FROM files WHERE name = ? AND session_code = ?", (filename, sessionCode)).fetchall()[0][0]
+    # If file not in system this will return an index error. Maybe change this to be more intelligent? idk it works for now ¯\_(ツ)_/¯
     except IndexError as e:
-        return error("File does not exist")
-    delete_file(filePath)  # Delete file
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
+
+    # Delete file
+    delete_file(filePath)
     return session(sessionCode)
 
-def error(err):
-    return err
-
-
-def delete_expired():  # Selects all session records where the expiration date has been reached and wipes them and their respective files
+# Selects all session records where the expiration date has been reached and wipes them and their respective files
+def delete_expired():
     sessions = cursor.execute(
         "SELECT * FROM sessions WHERE expiration <= CURRENT_TIMESTAMP").fetchall()
     for session in sessions:
         sessionCode = session[1]
         sessionID = session[0]
+
         try:
-            shutil.rmtree(os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)) # Clear and remove directory
+            # Clear and remove file directory
+            shutil.rmtree(os.path.join(
+                app.config["UPLOAD_FOLDER"], sessionCode))
         except FileNotFoundError:
             print("No such directory")
-        cursor.execute("DELETE FROM files WHERE session_code = ?", (sessionCode,)) # Remove file record
+
+        # Remove file record
+        cursor.execute(
+            "DELETE FROM files WHERE session_code = ?", (sessionCode,))
+        # Remove session record
         cursor.execute("DELETE FROM sessions WHERE id = ?",
-                       (sessionID,))  # Remove session record
+                       (sessionID,))
+        # Re-add ID to pool for further usage
         cursor.execute("INSERT INTO id_pool (id) VALUES (?)",
-                       (sessionID,))  # Re-add ID to id_pool
+                       (sessionID,))
+
     connection.commit()
 
-
-def delete_file(filePath):  # Delete file from system and remove record
+# Deletes file from system and removes record
+def delete_file(filePath):  
     try:
         cursor.execute("DELETE FROM files WHERE path = ?", (filePath,))
         os.remove(os.path.join(os.path.join(filePath)))
@@ -187,25 +214,32 @@ def delete_file(filePath):  # Delete file from system and remove record
     except FileNotFoundError as e:
         print(e)
 
-
-def reset_id_pool():  # Removes all records from the id_pool and refills it up to session limit
+# Removes all records from the id_pool and refills it up to session limit
+def reset_id_pool():  
     cursor.execute("DELETE FROM id_pool")
     for i in range(app.config["MAX_SESSIONS"]):
         cursor.execute("INSERT INTO id_pool VALUES(?)", (i,))
-    print("ID POOL RESET")
+
     connection.commit()
 
+# Create a new session
+def create_session(lifetime):  
+    # Selects lowest available id from id pool
 
-def create_session(lifetime):  # Create a new session record
-    # Selects lowest available id from id pool and converts to int
     sessionID = cursor.execute("SELECT MIN(id) FROM id_pool").fetchall()[0][0]
+
     if sessionID == None:
-        return error("Session limit reached. Please try again later")
+        return redirect(url_for("index"))
+        # TODO IMPLEMENT ERROR HANDLING
+
+    # Remove ID from ID pool
     cursor.execute("DELETE FROM id_pool WHERE id = ?",
-                   (sessionID,))  # Remove ID from ID pool
+                   (sessionID,)) 
+
     sessionCode = generate_code(sessionID)
 
-    currentDateTime = datetime.datetime.today()  # Create expiration datetime
+    # Create expiration datetime
+    currentDateTime = datetime.datetime.today()  
     timeChange = datetime.timedelta(minutes=lifetime)
     expiration_datetime = currentDateTime + timeChange
 
@@ -216,16 +250,16 @@ def create_session(lifetime):  # Create a new session record
 
 # Validates whether a session code exists
 def match_session(sessionCode):
+
     matchingSessions = cursor.execute(
         "SELECT * FROM sessions WHERE code = ?", (sessionCode,)).fetchall()
-    if matchingSessions == 0:
+    if len(matchingSessions) == 0:
         return False
     else:
         return True
 
-
 # Create a background scheduler object and trigger the delete expired function every minute
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=delete_expired, trigger="interval", minutes=10)
+scheduler.add_job(func=delete_expired, trigger="interval", minutes=1)
 scheduler.start()
 delete_expired()
