@@ -37,8 +37,7 @@ def create():
     lifetime = int(request.form["lifetime"])
 
     if lifetime > app.config["MAX_LIFETIME"]:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(401, ("Session lifetime must not exceed " + str(app.config["MAX_LIFETIME"]) + " minutes"))
 
     sessionCode = create_session(lifetime)
     return redirect(url_for("session", sessionCode=sessionCode))
@@ -70,8 +69,7 @@ def save_file(file, sessionCode, password):
 @app.route("/upload/<sessionCode>/<password>", methods=["POST"])
 def upload(sessionCode, password):
     if match_session(sessionCode) == False:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(401, "Invalid Session Code")
 
     # Check if request has a file
 
@@ -90,25 +88,19 @@ def upload(sessionCode, password):
                 "sessionCode": sessionCode
             })
         else:
-            return redirect(url_for("index"))
-            # TODO IMPLEMENT ERROR HANDLING
+            return error(500, "No file or text provided")
 
     file = request.files['file']
 
     # If file exists then call save function on it
+    save_file(file, sessionCode, password)
 
-    if file:
-        save_file(file, sessionCode, password)
+    # Return list of files to front-end
 
-        # Return list of files to front-end
-
-        return jsonify({
-            "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
-            "sessionCode": sessionCode
-        })
-    else:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+    return jsonify({
+        "fileList": cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall(),
+        "sessionCode": sessionCode
+    })
 
 
 # This renders the session or returns json of user's file and text, depending on the method used
@@ -126,8 +118,7 @@ def session(sessionCode):
 
     sessionCode = sessionCode.upper()
     if not match_session(sessionCode):
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(403, "Invalid Session Code")
 
     # Return JSON of user's files for POST request
 
@@ -158,8 +149,7 @@ def download(sessionCode, filename, password):
             mimetype="text/plain"
         )
     else:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(403, "Invalid File")
 
 
 # Route for removing files
@@ -171,12 +161,15 @@ def remove_file(sessionCode, filename):
             "SELECT path FROM files WHERE name = ? AND session_code = ?", (filename, sessionCode)).fetchall()[0][0]
     # If file not in system this will return an index error. Maybe change this to be more intelligent? idk it works for now ¯\_(ツ)_/¯
     except IndexError as e:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(500, "File does not exist")
 
     # Delete file
     delete_file(filePath)
     return session(sessionCode)
+
+@app.route("/error")
+def error(code=404, message=""):
+    return render_template("error.html", code=code, message=message)
 
 # Selects all session records where the expiration date has been reached and wipes them and their respective files
 def delete_expired():
@@ -229,8 +222,7 @@ def create_session(lifetime):
     sessionID = cursor.execute("SELECT MIN(id) FROM id_pool").fetchall()[0][0]
 
     if sessionID == None:
-        return redirect(url_for("index"))
-        # TODO IMPLEMENT ERROR HANDLING
+        return error(500, "Session Limit reached")
 
     # Remove ID from ID pool
     cursor.execute("DELETE FROM id_pool WHERE id = ?",

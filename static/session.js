@@ -109,7 +109,7 @@ $(document).ready(function () { // Runs when document is loaded
                 $("#uploadfile").val('');
             },
             error: function (response) {
-                console.log(response);
+                alert(response["message"]);
             }
         })
         event.preventDefault();
