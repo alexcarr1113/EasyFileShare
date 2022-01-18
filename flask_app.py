@@ -167,7 +167,7 @@ def remove_file(sessionCode, filename):
     delete_file(filePath)
     return session(sessionCode)
 
-@app.route("/error")
+# Error handling
 def error(code=404, message=""):
     return render_template("error.html", code=code, message=message)
 
