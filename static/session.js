@@ -80,7 +80,7 @@ $(document).ready(function () { // Runs when document is loaded
         user_text = $("#textInput").val();
         $.ajax({ // Send AJAX request
             type: "POST",
-            url: "/upload/" + sessionCode,
+            url: "/upload/" + sessionCode + "/0",
             contentType: 'application/json; charset=utf-8',
             dataType: "json",
             data: JSON.stringify({ "user_text": user_text }),
