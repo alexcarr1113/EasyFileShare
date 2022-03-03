@@ -1,7 +1,9 @@
+from distutils.command.config import config
 import os
 import sqlite3
 import datetime
 import shutil
+import yaml
 from io import BytesIO
 from hashing import *
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,13 +12,15 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Set upload_folder as constant in app config
-app.config["UPLOAD_FOLDER"] = "static/uploads"
-app.config["MAX_SESSIONS"] = 10000  # Define maximum session count
-# Define max session lifetime
-app.config["MAX_LIFETIME"] = 60
-# Set max file size to 1gb
-app.config['MAX_CONTENT_LENGTH'] = 1024 * 1000 * 1000
+# Load config file and save to dictionary
+with open('config.yml', 'r') as file:
+    config_dict = yaml.safe_load(file)
+
+# Set constants based on config file
+app.config["UPLOAD_FOLDER"] = config_dict["upload_folder"]
+app.config["MAX_SESSIONS"] = config_dict["max_sessions"]
+app.config["MAX_LIFETIME"] = config_dict["max_lifetime"]
+app.config['MAX_CONTENT_LENGTH'] = config_dict["max_filesize"] * 1024 * 1000 * 1000
 
 # Connect to database file
 connection = sqlite3.connect(

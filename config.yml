@@ -1,0 +1,4 @@
+upload_folder: "static/uploads"
+max_sessions: 10000
+max_lifetime: 60 # Maximum session lifetime in minutes. 60 is recommended for security purposes
+max_filesize: 1 # Maximum filesize in GB
