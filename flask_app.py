@@ -141,19 +141,19 @@ def session(sessionCode):
 @app.route("/<sessionCode>/<filename>/<password>")
 def download(sessionCode, filename, password):
     # If session code for desired file matches provided code
-    if cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall()[0][0] == filename:
-        path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
+    for file in cursor.execute("SELECT name FROM files WHERE session_code = ?", (sessionCode,)).fetchall():
+        if file[0] == filename:
+            path = os.path.join(app.config["UPLOAD_FOLDER"], sessionCode)
 
-        # Generate decrypted file bytes
-        bytes = decrypt_file(path+"/"+filename, password)
-        # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
-        return send_file(
-            BytesIO(bytes),
-            attachment_filename=filename,
-            mimetype="text/plain"
-        )
-    else:
-        return error(403, "Invalid File")
+            # Generate decrypted file bytes
+            bytes = decrypt_file(path+"/"+filename, password)
+            # This sends the raw decrypted bytes, so a decrypted file is never stored on the system
+            return send_file(
+                BytesIO(bytes),
+                attachment_filename=filename,
+                mimetype="text/plain"
+            )
+    return error(403, "Invalid File")
 
 
 # Route for removing files
