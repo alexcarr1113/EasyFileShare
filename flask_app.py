@@ -247,6 +247,8 @@ def create_session(lifetime):
 # Validates whether a session code exists
 def match_session(sessionCode):
 
+    sessionCode = sessionCode.upper()
+
     matchingSessions = cursor.execute(
         "SELECT * FROM sessions WHERE code = ?", (sessionCode,)).fetchall()
     if len(matchingSessions) == 0:
