@@ -111,18 +111,18 @@ def upload(sessionCode, password):
 @app.route("/<sessionCode>", methods=["GET", "POST"])
 def session(sessionCode):
 
+    #make sessionCode uppercase
+    sessionCode = sessionCode.upper()
+
+    # Confirm login code is valid
+    if not match_session(sessionCode):
+        return error(403, "Invalid Session Code")
+
     # Send page for get request
 
     if request.method == "GET":
         # Check session exists
-        if match_session(sessionCode):
-            return render_template("session.html", sessionCode=sessionCode)
-
-    # Confirm login code is valid
-
-    sessionCode = sessionCode.upper()
-    if not match_session(sessionCode):
-        return error(403, "Invalid Session Code")
+        return render_template("session.html", sessionCode=sessionCode)
 
     # Return JSON of user's files for POST request
 
