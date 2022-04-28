@@ -163,7 +163,7 @@ def remove_file(sessionCode, filename):
     try:
         filePath = cursor.execute(
             "SELECT path FROM files WHERE name = ? AND session_code = ?", (filename, sessionCode)).fetchall()[0][0]
-    # If file not in system this will return an index error. Maybe change this to be more intelligent? idk it works for now ¯\_(ツ)_/¯
+    # If file not in system this will return an index error
     except IndexError as e:
         return error(500, "File does not exist")
 
