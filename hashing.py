@@ -105,7 +105,7 @@ def decrypt_file(path, password):
         pass
     
     fernet = Fernet(key)
-    # Create decrypted data. If the password is incorrect it will just return the encrypted data. this is inconvenient for the user; their fault for using the wrong password
+    # Create decrypted data. If the password is incorrect it will just return the encrypted data
     try:
         data = fernet.decrypt(encrypted) 
     except:
